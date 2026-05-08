@@ -40,7 +40,8 @@ export function createSpreadSession(options: {
     persistence: {
       provider: 'local',
       cloudBacked: false,
-      syncedAt: null
+      syncedAt: null,
+      lastSyncError: null
     }
   };
 
@@ -56,7 +57,23 @@ export function markSessionCloudSynced(
     persistence: {
       provider: 'supabase' as const,
       cloudBacked: true,
-      syncedAt
+      syncedAt,
+      lastSyncError: null
+    }
+  };
+}
+
+export function markSessionCloudError(
+  session: SpreadSession,
+  error: string
+) {
+  return {
+    ...session,
+    persistence: {
+      ...session.persistence,
+      provider: 'local' as const,
+      cloudBacked: false,
+      lastSyncError: error
     }
   };
 }

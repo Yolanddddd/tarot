@@ -87,6 +87,12 @@ export function ResultPage({
                 : '仅本地缓存'}
             </span>
           </div>
+          {!session.persistence.cloudBacked &&
+          session.persistence.lastSyncError ? (
+            <p className="result-error">
+              云端同步失败：{session.persistence.lastSyncError}
+            </p>
+          ) : null}
           <div className="result-toolbar">
             <button className="primary-button" onClick={onReturn} type="button">
               返回抽牌空间

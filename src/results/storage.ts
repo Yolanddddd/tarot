@@ -52,7 +52,8 @@ export function normalizeSpreadSession(session: SpreadSession | null) {
     persistence: session.persistence ?? {
       provider: 'local',
       cloudBacked: false,
-      syncedAt: null
+      syncedAt: null,
+      lastSyncError: null
     }
   };
 }

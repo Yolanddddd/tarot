@@ -8,7 +8,7 @@ import {
   normalizeSpreadSession,
   saveSpreadSession
 } from './storage';
-import { markSessionCloudSynced } from './session';
+import { markSessionCloudError, markSessionCloudSynced } from './session';
 import type { SpreadSession } from './types';
 
 interface PersistResult {
@@ -46,10 +46,16 @@ export async function persistSpreadSession(session: SpreadSession): Promise<Pers
   const supabase = await getSupabaseClient();
 
   if (!supabase) {
-    return {
+    const fallbackSession = markSessionCloudError(
       session,
+      getSupabaseClientLoadError() ?? 'Supabase 客户端未能加载。'
+    );
+    saveSpreadSession(fallbackSession);
+
+    return {
+      session: fallbackSession,
       source: 'local',
-      error: getSupabaseClientLoadError() ?? 'Supabase 客户端未能加载。'
+      error: fallbackSession.persistence.lastSyncError
     };
   }
 
@@ -59,8 +65,11 @@ export async function persistSpreadSession(session: SpreadSession): Promise<Pers
   const { error } = await supabase.from('spread_sessions').insert(row);
 
   if (error) {
+    const fallbackSession = markSessionCloudError(session, error.message);
+    saveSpreadSession(fallbackSession);
+
     return {
-      session,
+      session: fallbackSession,
       source: 'local',
       error: error.message
     };

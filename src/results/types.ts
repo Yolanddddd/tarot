@@ -16,6 +16,7 @@ export interface SpreadSessionPersistence {
   provider: 'local' | 'supabase';
   cloudBacked: boolean;
   syncedAt: string | null;
+  lastSyncError: string | null;
 }
 
 export interface SpreadSession {
