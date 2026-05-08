@@ -1,4 +1,8 @@
-import { getSupabaseClient, isSupabaseConfigured } from '../lib/supabase';
+import {
+  getSupabaseClient,
+  getSupabaseClientLoadError,
+  isSupabaseConfigured
+} from '../lib/supabase';
 import {
   loadSpreadSession,
   normalizeSpreadSession,
@@ -45,7 +49,7 @@ export async function persistSpreadSession(session: SpreadSession): Promise<Pers
     return {
       session,
       source: 'local',
-      error: null
+      error: getSupabaseClientLoadError() ?? 'Supabase 客户端未能加载。'
     };
   }
 
@@ -96,7 +100,7 @@ export async function loadSpreadSessionRecord(sessionId: string): Promise<LoadRe
     return {
       session: null,
       source: 'none',
-      error: null
+      error: getSupabaseClientLoadError() ?? 'Supabase 客户端未能加载。'
     };
   }
 
