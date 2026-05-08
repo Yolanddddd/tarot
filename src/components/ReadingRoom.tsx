@@ -49,7 +49,11 @@ export function ReadingRoom({ onOpenResult }: ReadingRoomProps) {
   ]);
 
   useEffect(() => {
-    if (!selection.hasRevealedCards || !selection.revealedSession) {
+    if (
+      !selection.hasRevealedCards ||
+      !selection.revealedSession ||
+      selection.persistenceState.status === 'saving'
+    ) {
       lastOpenedResultId.current = null;
       return;
     }
@@ -63,6 +67,7 @@ export function ReadingRoom({ onOpenResult }: ReadingRoomProps) {
   }, [
     onOpenResult,
     selection.hasRevealedCards,
+    selection.persistenceState.status,
     selection.revealedSession
   ]);
 

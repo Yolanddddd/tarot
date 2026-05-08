@@ -78,7 +78,10 @@ export async function persistSpreadSession(session: SpreadSession): Promise<Pers
 export async function loadSpreadSessionRecord(sessionId: string): Promise<LoadResult> {
   const localSession = loadSpreadSession(sessionId);
 
-  if (localSession) {
+  if (
+    localSession &&
+    (!isSupabaseConfigured() || localSession.persistence.cloudBacked)
+  ) {
     return {
       session: localSession,
       source: 'local',
@@ -127,6 +130,14 @@ export async function loadSpreadSessionRecord(sessionId: string): Promise<LoadRe
     return {
       session,
       source: 'cloud',
+      error: null
+    };
+  }
+
+  if (localSession) {
+    return {
+      session: localSession,
+      source: 'local',
       error: null
     };
   }
