@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/spread/:sessionId",
+      "destination": "/"
+    }
+  ]
+}
