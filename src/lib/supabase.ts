@@ -19,7 +19,7 @@ let clientLoadError: string | null = null;
 
 export function isSupabaseConfigured() {
   return Boolean(
-    runtimeConfig.supabase.url && runtimeConfig.supabase.publishableKey
+    getNormalizedSupabaseUrl() && getNormalizedSupabasePublishableKey()
   );
 }
 
@@ -28,7 +28,10 @@ export function getSupabaseClientLoadError() {
 }
 
 export async function getSupabaseClient() {
-  if (!isSupabaseConfigured()) {
+  const supabaseUrl = getNormalizedSupabaseUrl();
+  const supabasePublishableKey = getNormalizedSupabasePublishableKey();
+
+  if (!supabaseUrl || !supabasePublishableKey) {
     return null;
   }
 
@@ -55,8 +58,8 @@ export async function getSupabaseClient() {
 
         clientLoadError = null;
         client = typedModule.createClient(
-          runtimeConfig.supabase.url,
-          runtimeConfig.supabase.publishableKey,
+          supabaseUrl,
+          supabasePublishableKey,
           {
             auth: {
               persistSession: false,
@@ -87,4 +90,35 @@ export async function getSupabaseClient() {
   }
 
   return client;
+}
+
+function getNormalizedSupabaseUrl() {
+  const raw = normalizeEnvValue(runtimeConfig.supabase.url);
+
+  if (!raw) {
+    return '';
+  }
+
+  const withoutRestPath = raw.replace(/\/rest\/v1\/?$/i, '');
+  const withoutTrailingSlash = withoutRestPath.replace(/\/+$/g, '');
+
+  try {
+    const parsed = new URL(withoutTrailingSlash);
+
+    if (!/^https?:$/i.test(parsed.protocol)) {
+      return '';
+    }
+
+    return parsed.origin;
+  } catch {
+    return '';
+  }
+}
+
+function getNormalizedSupabasePublishableKey() {
+  return normalizeEnvValue(runtimeConfig.supabase.publishableKey);
+}
+
+function normalizeEnvValue(value: string) {
+  return value.trim().replace(/^['"]+|['"]+$/g, '');
 }
