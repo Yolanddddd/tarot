@@ -1,0 +1,44 @@
+{
+  "futureCross": {
+    "id": "futureCross",
+    "label": "未来十字",
+    "cardCount": 5,
+    "slots": [
+      { "id": "top", "x": 0, "y": 2.4, "z": 0 },
+      { "id": "center", "x": 0, "y": 0, "z": 0 },
+      { "id": "bottom", "x": 0, "y": -2.4, "z": 0 },
+      { "id": "left", "x": -2.4, "y": 0, "z": 0 },
+      { "id": "right", "x": 2.4, "y": 0, "z": 0 }
+    ]
+  },
+  "hexagram": {
+    "id": "hexagram",
+    "label": "六芒星",
+    "cardCount": 7,
+    "slots": [
+      { "id": "north", "x": 0, "y": 3.2, "z": 0 },
+      { "id": "northEast", "x": 2.6, "y": 1.6, "z": 0 },
+      { "id": "southEast", "x": 2.6, "y": -1.6, "z": 0 },
+      { "id": "south", "x": 0, "y": -3.2, "z": 0 },
+      { "id": "southWest", "x": -2.6, "y": -1.6, "z": 0 },
+      { "id": "northWest", "x": -2.6, "y": 1.6, "z": 0 },
+      { "id": "core", "x": 0, "y": 0, "z": 0 }
+    ]
+  },
+  "monthlyFlow": {
+    "id": "monthlyFlow",
+    "label": "月度运势",
+    "cardCount": 9,
+    "slots": [
+      { "id": "topLeft", "x": -2.8, "y": 3.4, "z": 0 },
+      { "id": "topCenter", "x": 0, "y": 3.4, "z": 0 },
+      { "id": "topRight", "x": 2.8, "y": 3.4, "z": 0 },
+      { "id": "leftMiddle", "x": -2.8, "y": 0.2, "z": 0 },
+      { "id": "leftBottom", "x": -2.8, "y": -2.2, "z": 0 },
+      { "id": "centerMiddle", "x": 0, "y": 0.2, "z": 0 },
+      { "id": "centerBottom", "x": 0, "y": -2.2, "z": 0 },
+      { "id": "rightMiddle", "x": 2.8, "y": 0.2, "z": 0 },
+      { "id": "rightBottom", "x": 2.8, "y": -2.2, "z": 0 }
+    ]
+  }
+}
