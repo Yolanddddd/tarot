@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AuraTarot Demo Skeleton
 
 这是基于你的 `AuraTarot PRD v4.0` 搭出来的第四版骨架，当前已经具备四个连续的验证闭环：
@@ -199,3 +200,6 @@ npm run dev
   - `音效与蜡烛火焰`
   - `结果页文案生成`
   这三块接上。
+=======
+# tarot
+>>>>>>> 6b349ea608bc18cf466040c3b22e6a8498e07333
