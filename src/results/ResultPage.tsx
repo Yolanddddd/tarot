@@ -92,6 +92,10 @@ export function ResultPage({
             <p className="result-error">
               云端同步失败：{session.persistence.lastSyncError}
             </p>
+          ) : !session.persistence.cloudBacked ? (
+            <p className="result-error">
+              云端同步尚未完成。若这里始终没有更具体的错误，通常表示当前访问的部署还不是最新版本。
+            </p>
           ) : null}
           <div className="result-toolbar">
             <button className="primary-button" onClick={onReturn} type="button">

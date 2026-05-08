@@ -36,10 +36,16 @@ export async function persistSpreadSession(session: SpreadSession): Promise<Pers
   saveSpreadSession(session);
 
   if (!isSupabaseConfigured()) {
-    return {
+    const fallbackSession = markSessionCloudError(
       session,
+      '当前部署没有读取到 Supabase 环境变量。'
+    );
+    saveSpreadSession(fallbackSession);
+
+    return {
+      session: fallbackSession,
       source: 'local',
-      error: null
+      error: fallbackSession.persistence.lastSyncError
     };
   }
 
