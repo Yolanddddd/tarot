@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { TarotCardImage } from '../components/TarotCardImage';
+import { AuraBackdrop } from '../components/AuraBackdrop';
+import { ResultSpread } from './ResultSpread';
 import { buildShareUrl } from './session';
 import type { SpreadSession } from './types';
 
@@ -23,12 +24,13 @@ export function ResultPage({
   if (loading) {
     return (
       <main className="result-shell">
+        <AuraBackdrop />
         <div className="result-frame">
           <div className="result-card result-card--empty">
             <p className="eyebrow">AuraTarot / Result</p>
             <h1>正在召回结果页</h1>
             <p className="panel-copy">
-              正在从本地或 Supabase 读取这次抽牌的会话记录，请稍候。
+              正在读取这次抽牌的记录，请稍候。
             </p>
           </div>
         </div>
@@ -39,13 +41,13 @@ export function ResultPage({
   if (!session) {
     return (
       <main className="result-shell">
+        <AuraBackdrop />
         <div className="result-frame">
           <div className="result-card result-card--empty">
             <p className="eyebrow">AuraTarot / Result</p>
             <h1>结果页不存在</h1>
             <p className="panel-copy">
-              当前链接没有在本地找到对应的揭示记录，可能是浏览器缓存已清空，
-              或者 Supabase 还没有配置完成。
+              暂时没有找到这次牌阵。如果它仅保存在本地，请使用原来的设备和浏览器查看。
             </p>
             {error ? <p className="result-error">{error}</p> : null}
             <div className="result-toolbar">
@@ -60,43 +62,28 @@ export function ResultPage({
   }
 
   const shareUrl = buildShareUrl(session.sharePath);
-  const spreadBoardLayout = buildSpreadBoardLayout(session);
 
   return (
     <main className="result-shell">
+      <AuraBackdrop />
       <div className="result-frame">
         <section className="result-card result-card--hero">
           <p className="eyebrow">AuraTarot / Revealed Spread</p>
           <h1>{session.spread.label}</h1>
           <p className="result-quote">{session.quote}</p>
           <div className="result-meta">
-            <span>会话 ID：{session.id}</span>
             <span>揭示时间：{formatDateTime(session.revealedAt)}</span>
-            <span>
-              读取来源：
-              {source === 'cloud'
-                ? 'Supabase'
-                : source === 'local'
-                  ? '本地缓存'
-                  : '未知'}
-            </span>
-            <span>
-              云端状态：
-              {session.persistence.cloudBacked
-                ? `已同步到 ${session.persistence.provider}`
-                : '仅本地缓存'}
-            </span>
+            <span>{session.persistence.cloudBacked ? '已保存，可通过链接分享' : '已保存在此设备'}</span>
           </div>
-          {!session.persistence.cloudBacked &&
-          session.persistence.lastSyncError ? (
+          {!session.persistence.cloudBacked ? (
             <p className="result-error">
-              云端同步失败：{session.persistence.lastSyncError}
-            </p>
-          ) : !session.persistence.cloudBacked ? (
-            <p className="result-error">
-              云端同步尚未完成。若这里始终没有更具体的错误，通常表示当前访问的部署还不是最新版本。
+              这次牌阵暂未同步，链接目前仅能在此设备的同一浏览器中查看。
             </p>
           ) : null}
+          <details className="result-details"><summary>保存详情</summary>
+            <p>记录：{session.id} · 来源：{source === 'cloud' ? '云端' : '本地'}</p>
+            {session.persistence.lastSyncError && <p>{session.persistence.lastSyncError}</p>}
+          </details>
           <div className="result-toolbar">
             <button className="primary-button" onClick={onReturn} type="button">
               返回抽牌空间
@@ -134,34 +121,7 @@ export function ResultPage({
             <span className="panel-label">牌阵复现</span>
             <span className="panel-badge">保持原始落位</span>
           </div>
-          <div className="result-spread-board">
-            {session.cards.map((card, index) => (
-              <article
-                className="result-spread-card"
-                key={`${card.cardId}-${card.selectionIndex}`}
-                style={{
-                  left: `${spreadBoardLayout.positions[index].left}%`,
-                  top: `${spreadBoardLayout.positions[index].top}%`,
-                  zIndex: 20 + Math.round(card.slotPosition.z * 10)
-                }}
-              >
-                <TarotCardImage
-                  alt={card.label}
-                  cardId={card.cardId}
-                  className={`result-card-image result-card-image--spread ${
-                    card.orientationLabel === 'reversed'
-                      ? 'result-card-image--reversed'
-                      : ''
-                  }`}
-                  label={card.label}
-                />
-                <div className="result-spread-chip">
-                  <span>{index + 1}</span>
-                  <span>{card.orientationLabel === 'reversed' ? '逆位' : '正位'}</span>
-                </div>
-              </article>
-            ))}
-          </div>
+          <ResultSpread session={session} />
         </section>
       </div>
     </main>
@@ -173,29 +133,4 @@ function formatDateTime(value: string) {
     dateStyle: 'medium',
     timeStyle: 'short'
   }).format(new Date(value));
-}
-
-function buildSpreadBoardLayout(session: SpreadSession) {
-  const positions = session.cards.map((card) => card.slotPosition);
-  const xValues = positions.map((position) => position.x);
-  const yValues = positions.map((position) => position.y);
-  const minX = Math.min(...xValues);
-  const maxX = Math.max(...xValues);
-  const minY = Math.min(...yValues);
-  const maxY = Math.max(...yValues);
-  const xRange = Math.max(maxX - minX, 1);
-  const yRange = Math.max(maxY - minY, 1);
-  const horizontalPadding = 18;
-  const verticalPadding = 24;
-
-  return {
-    positions: session.cards.map((card) => ({
-      left:
-        horizontalPadding +
-        ((card.slotPosition.x - minX) / xRange) * (100 - horizontalPadding * 2),
-      top:
-        verticalPadding +
-        ((maxY - card.slotPosition.y) / yRange) * (100 - verticalPadding * 2)
-    }))
-  };
 }

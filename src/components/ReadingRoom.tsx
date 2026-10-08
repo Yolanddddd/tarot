@@ -1,131 +1,77 @@
 import { useEffect, useRef, useState } from 'react';
-import { BottomAltarPanel } from './BottomAltarPanel';
 import { HudPanel } from './HudPanel';
-import { LightPointStage } from './LightPointStage';
+import { BottomAltarPanel } from './BottomAltarPanel';
+import { AuraBackdrop } from './AuraBackdrop';
+import { TarotTable } from './TarotTable';
 import { useHandTracking } from '../gesture/useHandTracking';
+import { useDeviceShake } from '../gesture/useDeviceShake';
 import type { InteractionIntent, InputSource } from '../interaction/types';
 import { useSpreadSelection } from '../tarot/useSpreadSelection';
 
-interface ReadingRoomProps {
-  onOpenResult: (sharePath: string) => void;
-}
-
-export function ReadingRoom({ onOpenResult }: ReadingRoomProps) {
-  const frame = useHandTracking();
-  const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
-  const [selectIntent, setSelectIntent] = useState<InteractionIntent | null>(
-    null
-  );
-  const [revealIntent, setRevealIntent] = useState<InteractionIntent | null>(
-    null
-  );
+export function ReadingRoom({ onOpenResult }: { onOpenResult: (path: string) => void }) {
+  const [handEnabled, setHandEnabled] = useState(false);
+  const [touchDevice, setTouchDevice] = useState(() => navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches);
+  const frame = useHandTracking(handEnabled);
+  const [handHoveredCardId, setHandHoveredCardId] = useState<string | null>(null);
+  const [selectIntent, setSelectIntent] = useState<InteractionIntent | null>(null);
   const intentId = useRef(0);
-  const lastShuffleAt = useRef(0);
-  const lastOpenedResultId = useRef<string | null>(null);
-  const selection = useSpreadSelection({
-    frame,
-    hoveredCardId,
-    selectIntent,
-    revealIntent,
-    onViewResults: onOpenResult
-  });
+  const opened = useRef<string | null>(null);
+  const lastHandShuffle = useRef(0);
+  const selection = useSpreadSelection({ frame, handHoveredCardId, selectIntent });
+  const saving = selection.persistenceState.status === 'saving';
+  const canGestureShuffle = selection.drawnCards.length === 0 && !saving;
+  const shake = useDeviceShake(selection.shuffleDeck, canGestureShuffle);
+
+  useEffect(() => {
+    const media = matchMedia('(pointer: coarse)');
+    const update = () => setTouchDevice(navigator.maxTouchPoints > 0 || media.matches);
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
 
   useEffect(() => {
     const pointer = frame.pointer;
-
-    if (!pointer?.isShaking) {
-      return;
-    }
-
-    if (pointer.timestamp - lastShuffleAt.current < 1100) {
-      return;
-    }
-
+    if (!canGestureShuffle || !pointer?.isShaking || pointer.timestamp - lastHandShuffle.current < 1800) return;
+    lastHandShuffle.current = pointer.timestamp;
     selection.shuffleDeck();
-    lastShuffleAt.current = pointer.timestamp;
-  }, [
-    frame.pointer,
-    selection.shuffleDeck
-  ]);
+  }, [frame.pointer, canGestureShuffle, selection.shuffleDeck]);
 
   useEffect(() => {
-    if (
-      !selection.hasRevealedCards ||
-      !selection.revealedSession ||
-      selection.persistenceState.status === 'saving'
-    ) {
-      lastOpenedResultId.current = null;
-      return;
-    }
-
-    if (lastOpenedResultId.current === selection.revealedSession.id) {
-      return;
-    }
-
-    lastOpenedResultId.current = selection.revealedSession.id;
+    if (!selection.revealedSession || saving || !selection.hasRevealedCards) return;
+    if (opened.current === selection.revealedSession.id) return;
+    opened.current = selection.revealedSession.id;
     onOpenResult(selection.revealedSession.sharePath);
-  }, [
-    onOpenResult,
-    selection.hasRevealedCards,
-    selection.persistenceState.status,
-    selection.revealedSession
-  ]);
+  }, [selection.revealedSession, saving, selection.hasRevealedCards, onOpenResult]);
 
-  const issueIntent = (cardId: string | null, source: InputSource) => ({
-    id: intentId.current += 1,
-    cardId,
-    source,
-    timestamp: performance.now()
-  });
+  const select = (cardId: string, source: InputSource) => {
+    setSelectIntent({ id: ++intentId.current, cardId, source, timestamp: performance.now() });
+  };
+  const gestureMessage = touchDevice ? shake.message : handEnabled ? frame.message : '';
 
-  return (
-    <main className="app-shell">
-      <div className="orbital-backdrop" />
-      <div className="app-frame">
-        <LightPointStage
-          cards={selection.deckLayouts}
-          handPointerWorld={frame.pointer?.world ?? null}
-          isDeckStacked={!selection.fanOpen}
-          onHoverCardChange={setHoveredCardId}
-          onRevealIntent={(cardId, source) => {
-            setRevealIntent(issueIntent(cardId, source));
-          }}
-          onSelectIntent={(cardId, source) => {
-            setSelectIntent(issueIntent(cardId, source));
-          }}
-          onShuffleGesture={() => {
-            selection.shuffleDeck();
-          }}
-          shuffleMotionKey={selection.shuffleMotionKey}
-          spread={selection.spread}
-        />
-        <div className="vignette" />
-        <HudPanel
-          activeSpreadId={selection.activeSpreadId}
-          onSelectSpread={selection.setActiveSpreadId}
-          spread={selection.spread}
-          spreadList={selection.spreadList}
-        />
-        <BottomAltarPanel
-          cardCount={selection.spread.cardCount}
-          hasRevealedCards={selection.hasRevealedCards}
-          isRevealReady={selection.isRevealReady}
-          onOpenResult={() => {
-            if (!selection.revealedSession) {
-              return;
-            }
-
-            onOpenResult(selection.revealedSession.sharePath);
-          }}
-          onReset={selection.resetSelection}
-          onReveal={() => {
-            void selection.revealSelection();
-          }}
-          onShuffle={selection.shuffleDeck}
-          selectedCount={selection.drawnCards.length}
-          spreadLabel={selection.spread.label}
-        />
+  return <main className="reading-room">
+    <AuraBackdrop />
+    <HudPanel activeSpreadId={selection.activeSpreadId} spreadList={selection.spreadList}
+      onSelectSpread={selection.setActiveSpreadId} disabled={saving}
+      onReset={selection.resetSelection} touchDevice={touchDevice}
+      gestureEnabled={touchDevice ? shake.status === 'on' : handEnabled}
+      gestureBusy={shake.status === 'requesting'}
+      onToggleGesture={() => { if (touchDevice) void shake.toggle(); else setHandEnabled((value) => !value); }} />
+    <section className="portrait-hint" aria-label="请横屏选牌">
+      <div className="brand"><span className="brand__mark" aria-hidden="true">∞</span><div><span className="brand__name">AURATAROT</span><span className="brand__caption">/ DIVINATION SPACE</span></div></div>
+      <div className="portrait-hint__message">
+        <span className="portrait-hint__phone" aria-hidden="true">↻</span>
+        <h1>请将手机横过来</h1>
+        <p>横屏展开完整牌桌<br />左右滑动选牌，再轻点确认</p>
       </div>
-    </main>
-  );
+      <p>横屏后进入选牌 · 已选牌会保留</p>
+    </section>
+    <TarotTable deckOrder={selection.deckOrder} drawnCards={selection.drawnCards} spread={selection.spread}
+      fanOpen={selection.fanOpen} shuffleMotionKey={selection.shuffleMotionKey}
+      disabled={saving} handPointer={frame.pointer} onHandHover={setHandHoveredCardId}
+      onSelect={select} onShuffle={selection.shuffleDeck} />
+    <BottomAltarPanel selectedCount={selection.drawnCards.length} cardCount={selection.spread.cardCount}
+      spreadLabel={selection.spread.label} isRevealReady={selection.isRevealReady} saving={saving}
+      onShuffle={selection.shuffleDeck} onReveal={() => { void selection.revealSelection(); }}
+      message={['saving', 'error'].includes(selection.persistenceState.status) ? selection.persistenceState.message : gestureMessage} />
+  </main>;
 }
