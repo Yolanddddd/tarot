@@ -19,7 +19,11 @@ export async function resolveTarotCardFaceSource(card: CardLookup) {
     return normalizeAssetPath(configuredPath);
   }
 
-  return normalizeAssetPath(`${card.id}.jpg`);
+  return getDefaultTarotCardFaceSource(card.id);
+}
+
+export function getDefaultTarotCardFaceSource(cardId: string) {
+  return normalizeAssetPath(`${cardId}.jpg`);
 }
 
 export function buildTarotCardFallbackDataUrl(label: string) {

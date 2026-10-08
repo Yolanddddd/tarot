@@ -40,7 +40,7 @@ export function HudPanel({ activeSpreadId, spreadList, onSelectSpread, disabled,
       <button type="button" className="quiet-button gesture-button" onClick={onToggleGesture}
         aria-pressed={gestureEnabled} disabled={disabled || gestureBusy}>
         <span className="gesture-indicator" aria-hidden="true" />
-        {gestureBusy ? '开启中' : touchDevice ? '摇晃洗牌' : '摄像头手势'}
+        {gestureBusy ? '开启中' : touchDevice ? gestureEnabled ? '摇晃已开启' : '开启摇晃洗牌' : '摄像头手势'}
       </button>
       <button type="button" className="quiet-button reset-button" onClick={onReset} disabled={disabled} aria-label="重置本次牌阵">重置</button>
     </div>

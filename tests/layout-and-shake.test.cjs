@@ -72,3 +72,10 @@ test('three deliberate impulses trigger once and honor cooldown / reset', () => 
   detector.reset();
   assert.equal(detector.sample({ x: 18, y: 0, z: 9.8, timestamp: 4000 }), false);
 });
+
+test('moderate phone motion triggers without requiring unusually strong impacts', () => {
+  const detector = createShakeDetector();
+  const values = [0, 7, -1, 8];
+  const results = values.map((x, i) => detector.sample({ x, y: 0, z: 9.8, timestamp: i * 180 }));
+  assert.deepEqual(results, [false, false, false, true]);
+});

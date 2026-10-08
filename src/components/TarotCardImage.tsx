@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { buildTarotCardFallbackDataUrl, resolveTarotCardFaceSource } from '../tarot/cardArt';
+import { buildTarotCardFallbackDataUrl, getDefaultTarotCardFaceSource, resolveTarotCardFaceSource } from '../tarot/cardArt';
 
 interface TarotCardImageProps {
   cardId: string;
@@ -15,12 +15,13 @@ export function TarotCardImage({
   className
 }: TarotCardImageProps) {
   const fallbackSrc = useMemo(() => buildTarotCardFallbackDataUrl(label), [label]);
-  const [src, setSrc] = useState(fallbackSrc);
+  const defaultSrc = useMemo(() => getDefaultTarotCardFaceSource(cardId), [cardId]);
+  const [src, setSrc] = useState(defaultSrc);
 
   useEffect(() => {
     let cancelled = false;
 
-    setSrc(fallbackSrc);
+    setSrc(defaultSrc);
 
     void resolveTarotCardFaceSource({ id: cardId, label }).then((resolvedSrc) => {
       if (!cancelled) {
@@ -31,14 +32,15 @@ export function TarotCardImage({
     return () => {
       cancelled = true;
     };
-  }, [cardId, fallbackSrc, label]);
+  }, [cardId, defaultSrc, label]);
 
   return (
     <img
       alt={alt}
       className={className}
+      decoding="async"
       onError={() => {
-        setSrc(fallbackSrc);
+        if (src !== fallbackSrc) setSrc(fallbackSrc);
       }}
       src={src}
     />
