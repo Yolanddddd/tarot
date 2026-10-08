@@ -26,5 +26,9 @@ test('every deck card has a valid local image in the manifest', () => {
     assert(bytes.length > 1000, `Empty asset for ${card.id}`);
     assert.equal(bytes.subarray(0, 2).toString('hex'), 'ffd8', `Invalid JPEG: ${card.id}`);
     assert.equal(bytes.subarray(-2).toString('hex'), 'ffd9', `Incomplete JPEG: ${card.id}`);
+    const mobileBytes = fs.readFileSync(path.join(root, 'public/cards/rider-waite/mobile', file));
+    assert(mobileBytes.length < bytes.length, `Mobile asset was not compressed: ${card.id}`);
+    assert.equal(mobileBytes.subarray(0, 2).toString('hex'), 'ffd8', `Invalid mobile JPEG: ${card.id}`);
+    assert.equal(mobileBytes.subarray(-2).toString('hex'), 'ffd9', `Incomplete mobile JPEG: ${card.id}`);
   }
 });

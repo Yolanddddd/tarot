@@ -5,13 +5,13 @@ AuraTarot 是一个浏览器塔罗选牌应用。用户选择牌阵、洗牌并�
 ## 功能
 
 - 78 张牌与三种牌阵：未来十字（5 张）、六芒星（7 张）、月度运势（9 张）。
-- 桌面鼠标、键盘选牌；手机横屏左右滑动预览卡牌，轻点浮起的牌确认。手机竖屏显示横屏提示。
+- 桌面和 iPad 使用原有星空与 3D 选牌场景；手机横屏左右滑动预览卡牌，轻点浮起的牌确认。手机竖屏显示横屏提示。
 - 可选的摄像头手势和手机摇晃洗牌；两者均需在页面上主动开启，并受浏览器权限与设备支持情况影响。
-- 结果页展示牌阵、牌面和正逆位；记录先保存在本地，配置 Supabase 后再同步到云端。
+- 结果页展示牌阵、牌面和正逆位；结果可立即在本机查看，只有 Supabase 确认保存后才会显示并复制分享链接。保存失败可在结果页重试。
 
 ## 技术栈
 
-React 19、TypeScript、Vite 7、CSS、MediaPipe Tasks Vision、Supabase。Cinzel Decorative 与 Noto Serif SC 通过本地字体包提供，页面不依赖在线字体服务；字体许可文本见 `public/fonts/`。早期 Three.js 实验文件仍在仓库中，但当前首页与结果页不使用该场景。
+React 19、TypeScript、Vite 7、Three.js、CSS、MediaPipe Tasks Vision、Supabase。Cinzel Decorative 与 Noto Serif SC 通过本地字体包提供，页面不依赖在线字体服务；字体许可文本见 `public/fonts/`。
 
 ## 本地开发
 
@@ -51,21 +51,22 @@ npm run dev
 | 路径 | 说明 |
 | --- | --- |
 | `src/App.tsx` | 首页与 `/spread/:id` 结果页入口 |
-| `src/components/` | 牌桌、背景、按钮及共用卡牌组件 |
+| `src/components/` | 手机牌桌、背景、按钮及共用卡牌组件 |
+| `src/desktop/` | 桌面和 iPad 原有的 3D 选牌场景与样式 |
 | `src/tarot/` | 78 张牌的数据、选牌状态与牌桌布局 |
 | `src/config/spreads.json` | 三种牌阵与槽位定义 |
 | `src/gesture/` | 摄像头手势与设备摇晃检测 |
 | `src/results/` | 结果展示、本地存储与云端同步 |
 | `src/styles.css` | 桌面、平板、手机共用的视觉样式和响应式布局 |
-| `public/cards/rider-waite/` | 78 张 JPG 牌面与 `manifest.json` |
+| `public/cards/rider-waite/` | 78 张桌面 JPG 牌面、`mobile/` 移动版和 `manifest.json` |
 | `public/models/` | MediaPipe 手部识别模型 |
 | `supabase/spread_sessions.sql` | 结果表及其访问策略 |
 
-牌图默认直接使用 `卡牌 ID.jpg`，`manifest.json` 可覆盖文件名。图片加载失败时会显示占位牌面；开发时可用 `npm test` 检查牌组 ID、清单与实际文件是否对应。
+桌面牌图默认使用 `卡牌 ID.jpg`，iPhone 和 iPad 使用同图的 `mobile/卡牌 ID.jpg`（约为桌面资源的四分之一）。图片加载失败时会显示占位牌面；开发时可用 `npm test` 检查牌组 ID、清单与实际文件是否对应。
 
 ## 结果保存与部署
 
-应用先把结果写入当前浏览器。要让分享链接在其他设备打开，需在 Supabase SQL Editor 中执行 `supabase/spread_sessions.sql`，并在本地或 Vercel 配置上述两个 Supabase 变量。结果页出现「已保存，可通过链接分享」表示已同步；出现「已保存在此设备」时，可展开「保存详情」查看原因。
+应用先把结果写入当前浏览器，立即显示结果；同时将其保存到 Supabase。要让分享链接在其他设备打开，需在 Supabase SQL Editor 中执行 `supabase/spread_sessions.sql`，并在本地或 Vercel 配置上述两个 Supabase 变量。只有结果页出现「云端已保存，可分享」时才会显示分享链接；网络异常时会显示失败原因，并可点击「重试保存并复制链接」。
 
 当前 SQL 策略允许匿名插入和公开读取结果记录，不适合存放私密资料。若要提供私人记录，需要重新设计认证和访问策略。
 

@@ -1,8 +1,14 @@
+import { lazy, Suspense } from 'react';
 import { useBrowserPath } from './app/useBrowserPath';
+import { isPhoneDevice, readDeviceSignals } from './app/deviceClass';
 import { ReadingRoom } from './components/ReadingRoom';
 import { ResultPage } from './results/ResultPage';
 import { getSessionIdFromPath } from './results/session';
 import { useSpreadSessionRecord } from './results/useSpreadSessionRecord';
+
+const DesktopReadingRoom = lazy(() =>
+  import('./desktop/DesktopReadingRoom').then(({ DesktopReadingRoom }) => ({ default: DesktopReadingRoom }))
+);
 
 export default function App() {
   const { pathname, navigate } = useBrowserPath();
@@ -23,11 +29,10 @@ export default function App() {
     );
   }
 
-  return (
-    <ReadingRoom
-      onOpenResult={(sharePath) => {
-        navigate(sharePath);
-      }}
-    />
-  );
+  const onOpenResult = (sharePath: string) => navigate(sharePath);
+  return isPhoneDevice(readDeviceSignals())
+    ? <ReadingRoom onOpenResult={onOpenResult} />
+    : <Suspense fallback={<main className="app-shell" aria-label="正在打开占卜空间" />}>
+        <DesktopReadingRoom onOpenResult={onOpenResult} />
+      </Suspense>;
 }

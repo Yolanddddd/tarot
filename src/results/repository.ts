@@ -32,7 +32,21 @@ interface SpreadSessionRow {
   payload: SpreadSession;
 }
 
-export async function persistSpreadSession(session: SpreadSession): Promise<PersistResult> {
+const pendingSaves = new Map<string, Promise<PersistResult>>();
+
+export function isSpreadSessionSaving(sessionId: string) {
+  return pendingSaves.has(sessionId);
+}
+
+export function persistSpreadSession(session: SpreadSession): Promise<PersistResult> {
+  const pending = pendingSaves.get(session.id);
+  if (pending) return pending;
+  const save = persistSpreadSessionOnce(session).finally(() => pendingSaves.delete(session.id));
+  pendingSaves.set(session.id, save);
+  return save;
+}
+
+async function persistSpreadSessionOnce(session: SpreadSession): Promise<PersistResult> {
   saveSpreadSession(session);
 
   if (!isSupabaseConfigured()) {
@@ -68,9 +82,40 @@ export async function persistSpreadSession(session: SpreadSession): Promise<Pers
   const cloudSession = markSessionCloudSynced(session);
   const row = toRow(cloudSession);
 
-  const { error } = await supabase.from('spread_sessions').insert(row);
+  // A timed-out request may still have reached Supabase. Confirm before retrying
+  // so a duplicate ID is treated as an already saved result.
+  if (session.persistence.lastSyncError) {
+    const existing = await findCloudSession(supabase, session.id);
+    if (existing) {
+      saveSpreadSession(existing);
+      return { session: existing, source: 'cloud', error: null };
+    }
+  }
+
+  let error: { message: string } | null;
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 20000);
+  try {
+    ({ error } = await supabase.from('spread_sessions').insert(row).abortSignal(controller.signal));
+  } catch (cause) {
+    error = { message: controller.signal.aborted
+      ? '云端保存超时，请检查网络后重试。'
+      : cause instanceof Error ? cause.message : '网络请求失败。' };
+  } finally {
+    window.clearTimeout(timeout);
+  }
+  if (controller.signal.aborted) {
+    error = { message: '云端保存超时，请检查网络后重试。' };
+  }
 
   if (error) {
+    if (/duplicate key|23505/i.test(error.message)) {
+      const existing = await findCloudSession(supabase, session.id);
+      if (existing) {
+        saveSpreadSession(existing);
+        return { session: existing, source: 'cloud', error: null };
+      }
+    }
     const fallbackSession = markSessionCloudError(session, error.message);
     saveSpreadSession(fallbackSession);
 
@@ -90,13 +135,25 @@ export async function persistSpreadSession(session: SpreadSession): Promise<Pers
   };
 }
 
+async function findCloudSession(
+  supabase: NonNullable<Awaited<ReturnType<typeof getSupabaseClient>>>,
+  sessionId: string
+) {
+  try {
+    const { data, error } = await supabase.from('spread_sessions')
+      .select('payload').eq('id', sessionId).limit(1);
+    return error ? null : normalizeSpreadSession(
+      (data?.[0] as Pick<SpreadSessionRow, 'payload'> | undefined)?.payload ?? null
+    );
+  } catch {
+    return null;
+  }
+}
+
 export async function loadSpreadSessionRecord(sessionId: string): Promise<LoadResult> {
   const localSession = loadSpreadSession(sessionId);
 
-  if (
-    localSession &&
-    (!isSupabaseConfigured() || localSession.persistence.cloudBacked)
-  ) {
+  if (localSession) {
     return {
       session: localSession,
       source: 'local',

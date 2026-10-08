@@ -2,7 +2,9 @@ import { runtimeConfig } from '../config/runtime';
 
 interface SupabaseLikeClient {
   from: (table: string) => {
-    insert: (row: unknown) => Promise<{ error: { message: string } | null }>;
+    insert: (row: unknown) => {
+      abortSignal: (signal: AbortSignal) => Promise<{ error: { message: string } | null }>;
+    };
     select: (columns: string) => {
       eq: (column: string, value: string) => {
         limit: (

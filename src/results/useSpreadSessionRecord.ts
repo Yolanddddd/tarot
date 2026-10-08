@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { loadSpreadSessionRecord } from './repository';
+import { loadSpreadSession, SPREAD_SESSION_SAVED_EVENT } from './storage';
 import type { SpreadSession } from './types';
 
 interface SpreadSessionRecordState {
@@ -26,15 +27,23 @@ export function useSpreadSessionRecord(sessionId: string | null) {
     }
 
     let cancelled = false;
+    const localSession = loadSpreadSession(sessionId);
 
     setState({
-      loading: true,
-      session: null,
-      source: 'none',
+      loading: !localSession,
+      session: localSession,
+      source: localSession ? 'local' : 'none',
       error: null
     });
 
-    void loadSpreadSessionRecord(sessionId).then((result) => {
+    const onSaved = (event: Event) => {
+      if ((event as CustomEvent<string>).detail !== sessionId) return;
+      const updated = loadSpreadSession(sessionId);
+      if (updated) setState({ loading: false, session: updated, source: 'local', error: null });
+    };
+    window.addEventListener(SPREAD_SESSION_SAVED_EVENT, onSaved);
+
+    if (!localSession) void loadSpreadSessionRecord(sessionId).then((result) => {
       if (!cancelled) {
         setState({
           loading: false,
@@ -47,6 +56,7 @@ export function useSpreadSessionRecord(sessionId: string | null) {
 
     return () => {
       cancelled = true;
+      window.removeEventListener(SPREAD_SESSION_SAVED_EVENT, onSaved);
     };
   }, [sessionId]);
 

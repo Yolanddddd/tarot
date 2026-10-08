@@ -37,7 +37,7 @@ export function ReadingRoom({ onOpenResult }: { onOpenResult: (path: string) => 
   }, [frame.pointer, canGestureShuffle, selection.shuffleDeck]);
 
   useEffect(() => {
-    if (!selection.revealedSession || saving || !selection.hasRevealedCards) return;
+    if (!selection.revealedSession || !selection.hasRevealedCards) return;
     if (opened.current === selection.revealedSession.id) return;
     opened.current = selection.revealedSession.id;
     onOpenResult(selection.revealedSession.sharePath);

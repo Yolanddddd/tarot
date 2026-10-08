@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AuraBackdrop } from '../components/AuraBackdrop';
 import { ResultSpread } from './ResultSpread';
+import { isSpreadSessionSaving, persistSpreadSession } from './repository';
 import { buildShareUrl } from './session';
 import type { SpreadSession } from './types';
 
@@ -20,6 +21,8 @@ export function ResultPage({
   source
 }: ResultPageProps) {
   const [copied, setCopied] = useState(false);
+  const [copying, setCopying] = useState(false);
+  const [copyError, setCopyError] = useState<string | null>(null);
 
   if (loading) {
     return (
@@ -62,6 +65,7 @@ export function ResultPage({
   }
 
   const shareUrl = buildShareUrl(session.sharePath);
+  const savingInBackground = isSpreadSessionSaving(session.id);
 
   return (
     <main className="result-shell">
@@ -73,17 +77,22 @@ export function ResultPage({
           <p className="result-quote">{session.quote}</p>
           <div className="result-meta">
             <span>揭示时间：{formatDateTime(session.revealedAt)}</span>
-            <span>{session.persistence.cloudBacked ? '已保存，可通过链接分享' : '已保存在此设备'}</span>
+            <span>{session.persistence.cloudBacked ? '云端已保存，可分享' : session.persistence.lastSyncError ? '云端保存失败' : savingInBackground ? '正在保存到云端' : '尚未保存到云端'}</span>
           </div>
           {!session.persistence.cloudBacked ? (
             <p className="result-error">
-              这次牌阵暂未同步，链接目前仅能在此设备的同一浏览器中查看。
+              {session.persistence.lastSyncError
+                ? '云端保存失败。结果仍可在此设备查看；请检查网络后点击“重试保存并复制链接”。'
+                : savingInBackground
+                  ? '结果已显示，正在保存到云端。保存成功前不能分享链接。'
+                  : '结果仅在此设备可见；保存到云端后才能分享链接。'}
             </p>
           ) : null}
           <details className="result-details"><summary>保存详情</summary>
             <p>记录：{session.id} · 来源：{source === 'cloud' ? '云端' : '本地'}</p>
             {session.persistence.lastSyncError && <p>{session.persistence.lastSyncError}</p>}
           </details>
+          {copyError ? <p className="result-error" role="alert">{copyError}</p> : null}
           <div className="result-toolbar">
             <button className="primary-button" onClick={onReturn} type="button">
               返回抽牌空间
@@ -91,7 +100,17 @@ export function ResultPage({
             <button
               className="ghost-button"
               onClick={async () => {
+                if (copying) return;
+                setCopying(true);
+                setCopyError(null);
                 try {
+                  if (!session.persistence.cloudBacked) {
+                    const result = await persistSpreadSession(session);
+                    if (!result.session.persistence.cloudBacked) {
+                      setCopyError(result.error ?? '云端保存未完成，请稍后重试。');
+                      return;
+                    }
+                  }
                   await navigator.clipboard.writeText(shareUrl);
                   setCopied(true);
                   window.setTimeout(() => {
@@ -99,11 +118,15 @@ export function ResultPage({
                   }, 1800);
                 } catch {
                   setCopied(false);
+                  setCopyError('无法复制链接，请检查浏览器权限后重试。');
+                } finally {
+                  setCopying(false);
                 }
               }}
               type="button"
+              disabled={copying}
             >
-              {copied ? '链接已复制' : '复制结果链接'}
+              {copying ? '正在确认云端保存…' : copied ? '链接已复制' : session.persistence.cloudBacked ? '复制结果链接' : session.persistence.lastSyncError ? '重试保存并复制链接' : savingInBackground ? '保存完成后复制链接' : '保存到云端并复制链接'}
             </button>
           </div>
         </section>
@@ -113,7 +136,7 @@ export function ResultPage({
             <span className="panel-label">分享链接</span>
             <span className="panel-badge">{session.cards.length} 张已揭示</span>
           </div>
-          <p className="result-link">{shareUrl}</p>
+          <p className="result-link">{session.persistence.cloudBacked ? shareUrl : '云端保存成功后显示分享链接'}</p>
         </section>
 
         <section className="result-card">

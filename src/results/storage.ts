@@ -2,12 +2,14 @@ import { spreadMap } from '../config/spreads';
 import type { SpreadSession } from './types';
 
 const STORAGE_KEY = 'auratarot.spread.sessions.v1';
+export const SPREAD_SESSION_SAVED_EVENT = 'auratarot:spread-session-saved';
 
 export function saveSpreadSession(session: SpreadSession) {
   try {
     const allSessions = readAllSessions();
     allSessions[session.id] = session;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(allSessions));
+    window.dispatchEvent(new CustomEvent(SPREAD_SESSION_SAVED_EVENT, { detail: session.id }));
   } catch {
     // Ignore storage failures in restricted browser contexts.
   }

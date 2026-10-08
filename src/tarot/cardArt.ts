@@ -1,4 +1,5 @@
 import { runtimeConfig } from '../config/runtime';
+import { isPortableTouchDevice, readDeviceSignals } from '../app/deviceClass';
 
 interface CardAssetManifest {
   cards?: Record<string, string>;
@@ -12,6 +13,7 @@ interface CardLookup {
 let manifestPromise: Promise<CardAssetManifest> | null = null;
 
 export async function resolveTarotCardFaceSource(card: CardLookup) {
+  if (useMobileCards()) return getDefaultTarotCardFaceSource(card.id);
   const manifest = await loadCardAssetManifest();
   const configuredPath = manifest.cards?.[card.id];
 
@@ -23,7 +25,11 @@ export async function resolveTarotCardFaceSource(card: CardLookup) {
 }
 
 export function getDefaultTarotCardFaceSource(cardId: string) {
-  return normalizeAssetPath(`${cardId}.jpg`);
+  return normalizeAssetPath(`${useMobileCards() ? 'mobile/' : ''}${cardId}.jpg`);
+}
+
+function useMobileCards() {
+  return typeof navigator !== 'undefined' && isPortableTouchDevice(readDeviceSignals());
 }
 
 export function buildTarotCardFallbackDataUrl(label: string) {
