@@ -127,9 +127,11 @@ export function TarotTable({ deckOrder, drawnCards, spread, fanOpen, shuffleMoti
 
   return <section className="table-stage" aria-label={`${spread.label}选牌桌`}>
     <div className={`tarot-table ${layout.dots ? 'tarot-table--dots' : ''}`} ref={ref} data-animation={animation}>
-      <div className="spread-guide" role="img" aria-label={`${spread.label}，${spread.cardCount} 个原始牌位`}>
+      <div className="spread-guide" role="img"
+        aria-label={`${spread.label}，${spread.cardCount} 个牌位：${spread.slots.map((slot, index) => `第 ${index + 1} 张${slot.group ? `${slot.group}，` : ''}${slot.label}`).join('；')}`}>
         {layout.spread.map((slot, i) => <div key={spread.slots[i].id}
           className={`spread-slot ${i < drawnCards.length ? 'spread-slot--filled' : ''}`}
+          title={`第 ${i + 1} 张：${spread.slots[i].group ? `${spread.slots[i].group} · ` : ''}${spread.slots[i].label}`}
           data-slot={i} style={{ left: slot.x, top: slot.y, width: layout.dots ? 10 : slot.width, height: layout.dots ? 10 : slot.height }}>
           <span className="spread-slot__number">{i + 1}</span>
         </div>)}

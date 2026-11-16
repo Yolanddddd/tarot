@@ -13,10 +13,12 @@ interface Options {
   frame: HandTrackingFrame;
   handHoveredCardId: string | null;
   selectIntent: InteractionIntent | null;
+  initialSpreadId?: SpreadId;
+  onSessionCreated?: (session: SpreadSession) => void;
 }
 
-export function useSpreadSelection({ frame, handHoveredCardId, selectIntent }: Options) {
-  const [activeSpreadId, setActiveSpreadId] = useState<SpreadId>('futureCross');
+export function useSpreadSelection({ frame, handHoveredCardId, selectIntent, initialSpreadId = 'futureCross', onSessionCreated }: Options) {
+  const [activeSpreadId, setActiveSpreadId] = useState<SpreadId>(initialSpreadId);
   const [drawnCardsState, setDrawnCardsState] = useState<DrawnCardState[]>([]);
   const [fanOpen, setFanOpen] = useState(false);
   const [deckOrder, setDeckOrder] = useState(() => tarotDeck.map((card) => card.id));
@@ -70,6 +72,7 @@ export function useSpreadSelection({ frame, handHoveredCardId, selectIntent }: O
     const next = drawnCards.map((draw) => ({ ...draw, isRevealed: true, revealedAt }));
     setDrawnCardsState(next);
     const session = createSpreadSession({ spread, drawnCards: next, revealedAt });
+    onSessionCreated?.(session);
     setRevealedSession(session);
     setPersistenceState({ status: 'saving', message: '正在保存这次牌阵…' });
     try {
@@ -85,7 +88,7 @@ export function useSpreadSelection({ frame, handHoveredCardId, selectIntent }: O
     } finally {
       if (round === generation.current) revealInFlight.current = false;
     }
-  }, [drawnCards, isRevealReady, spread]);
+  }, [drawnCards, isRevealReady, spread, onSessionCreated]);
 
   useEffect(() => {
     if (!selectIntent || selectIntent.id === handledIntent.current) return;

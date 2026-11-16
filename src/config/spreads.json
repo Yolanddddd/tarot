@@ -2,43 +2,46 @@
   "futureCross": {
     "id": "futureCross",
     "label": "未来十字",
+    "meaningVersion": "study-abroad-v1",
     "cardCount": 5,
     "slots": [
-      { "id": "top", "x": 0, "y": 2.4, "z": 0 },
-      { "id": "center", "x": 0, "y": 0, "z": 0 },
-      { "id": "bottom", "x": 0, "y": -2.4, "z": 0 },
-      { "id": "left", "x": -2.4, "y": 0, "z": 0 },
-      { "id": "right", "x": 2.4, "y": 0, "z": 0 }
+      { "id": "top", "x": 0, "y": 2.4, "z": 0, "label": "现状", "description": "与问题直接相关的当前处境和可见条件" },
+      { "id": "center", "x": 0, "y": 0, "z": 0, "label": "阻碍与挑战", "description": "眼下面临的阻碍、压力或需要处理的挑战" },
+      { "id": "bottom", "x": 0, "y": -2.4, "z": 0, "label": "过去的影响", "description": "塑造当前局面的过去经历或深层起因" },
+      { "id": "left", "x": -2.4, "y": 0, "z": 0, "label": "近期未来趋势", "description": "沿当前路径发展时，近期可能出现的变化" },
+      { "id": "right", "x": 2.4, "y": 0, "z": 0, "label": "建议与可能结果", "description": "可以采取的行动，以及当前路径下的可能结果" }
     ]
   },
   "hexagram": {
     "id": "hexagram",
     "label": "六芒星",
+    "meaningVersion": "study-abroad-v1",
     "cardCount": 7,
     "slots": [
-      { "id": "north", "x": 0, "y": 3.2, "z": 0 },
-      { "id": "northEast", "x": 2.6, "y": 1.6, "z": 0 },
-      { "id": "southEast", "x": 2.6, "y": -1.6, "z": 0 },
-      { "id": "south", "x": 0, "y": -3.2, "z": 0 },
-      { "id": "southWest", "x": -2.6, "y": -1.6, "z": 0 },
-      { "id": "northWest", "x": -2.6, "y": 1.6, "z": 0 },
-      { "id": "core", "x": 0, "y": 0, "z": 0 }
+      { "id": "north", "x": 0, "y": 3.2, "z": 0, "label": "过去状况", "description": "对当前问题仍有影响的过往状态" },
+      { "id": "northEast", "x": 2.6, "y": 1.6, "z": 0, "label": "现在状况", "description": "当下正在发生的关键状况" },
+      { "id": "southEast", "x": 2.6, "y": -1.6, "z": 0, "label": "未来状况", "description": "按当前路径发展时的可能趋势" },
+      { "id": "south", "x": 0, "y": -3.2, "z": 0, "label": "行动建议", "description": "现阶段可以主动尝试的行动" },
+      { "id": "southWest", "x": -2.6, "y": -1.6, "z": 0, "label": "周遭环境", "description": "学校、家庭、同伴或机会等外部影响" },
+      { "id": "northWest", "x": -2.6, "y": 1.6, "z": 0, "label": "隐藏因素", "description": "尚未察觉的内在想法、潜意识或隐含因素" },
+      { "id": "core", "x": 0, "y": 0, "z": 0, "label": "最终结果", "description": "综合现有因素后可能形成的结果，不代表确定预言" }
     ]
   },
   "monthlyFlow": {
     "id": "monthlyFlow",
     "label": "月度运势",
+    "meaningVersion": "study-abroad-v1",
     "cardCount": 9,
     "slots": [
-      { "id": "topLeft", "x": -2.8, "y": 3.4, "z": 0 },
-      { "id": "topCenter", "x": 0, "y": 3.4, "z": 0 },
-      { "id": "topRight", "x": 2.8, "y": 3.4, "z": 0 },
-      { "id": "leftMiddle", "x": -2.8, "y": 0.2, "z": 0 },
-      { "id": "leftBottom", "x": -2.8, "y": -2.2, "z": 0 },
-      { "id": "centerMiddle", "x": 0, "y": 0.2, "z": 0 },
-      { "id": "centerBottom", "x": 0, "y": -2.2, "z": 0 },
-      { "id": "rightMiddle", "x": 2.8, "y": 0.2, "z": 0 },
-      { "id": "rightBottom", "x": 2.8, "y": -2.2, "z": 0 }
+      { "id": "topLeft", "x": -2.8, "y": 3, "z": 0, "group": "学业与事业", "label": "当前基础", "description": "本月学业或事业发展的现有基础" },
+      { "id": "topCenter", "x": 0, "y": 3, "z": 0, "group": "学业与事业", "label": "本月发展", "description": "本月学业或事业可能呈现的变化" },
+      { "id": "topRight", "x": 2.8, "y": 3, "z": 0, "group": "学业与事业", "label": "建议与提醒", "description": "本月在学业或事业上值得采取的行动" },
+      { "id": "leftMiddle", "x": -2.8, "y": 0, "z": 0, "group": "人际与感情", "label": "当前状态", "description": "本月人际或感情关系的当前状态" },
+      { "id": "leftBottom", "x": 0, "y": 0, "z": 0, "group": "人际与感情", "label": "关系发展", "description": "本月人际或感情关系可能出现的变化" },
+      { "id": "centerMiddle", "x": 2.8, "y": 0, "z": 0, "group": "人际与感情", "label": "建议与边界", "description": "本月在关系中值得留意的沟通与边界" },
+      { "id": "centerBottom", "x": -2.8, "y": -3, "z": 0, "group": "自我状态", "label": "情绪与能量", "description": "本月情绪、动力和精力的状态" },
+      { "id": "rightMiddle", "x": 0, "y": -3, "z": 0, "group": "自我状态", "label": "健康与压力", "description": "本月身心压力与日常照顾的提醒" },
+      { "id": "rightBottom", "x": 2.8, "y": -3, "z": 0, "group": "自我状态", "label": "内心成长", "description": "本月值得整合的经验与内在成长" }
     ]
   }
 }

@@ -6,13 +6,15 @@ interface DesktopHudPanelProps {
   spread: SpreadDefinition;
   spreadList: SpreadDefinition[];
   onSelectSpread: (spreadId: SpreadId) => void;
+  disabled?: boolean;
 }
 
 export function DesktopHudPanel({
   activeSpreadId,
   spread,
   spreadList,
-  onSelectSpread
+  onSelectSpread,
+  disabled = false
 }: DesktopHudPanelProps) {
   return (
     <div className="hud-shell">
@@ -29,6 +31,7 @@ export function DesktopHudPanel({
                 item.id === activeSpreadId ? 'spread-chip--active' : ''
               }`}
               key={item.id}
+              disabled={disabled}
               onClick={() => {
                 onSelectSpread(item.id as SpreadId);
               }}

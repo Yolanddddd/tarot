@@ -1,9 +1,14 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { AuraBackdrop } from '../components/AuraBackdrop';
 import { ResultSpread } from './ResultSpread';
 import { isSpreadSessionSaving, persistSpreadSession } from './repository';
 import { buildShareUrl } from './session';
 import type { SpreadSession } from './types';
+import { findReadingBySpreadResult } from '../reading/storage';
+import { AuthDialog } from '../reading/AuthDialog';
+import { readAuthCallbackError } from '../reading/authCallback';
+import { AnonymousInterpretation } from './AnonymousInterpretation';
+import { PrivateInterpretation } from './PrivateInterpretation';
 
 interface ResultPageProps {
   session: SpreadSession | null;
@@ -11,6 +16,7 @@ interface ResultPageProps {
   loading: boolean;
   error: string | null;
   source: 'local' | 'cloud' | 'none';
+  onPrivateDeleted: () => void;
 }
 
 export function ResultPage({
@@ -18,11 +24,24 @@ export function ResultPage({
   onReturn,
   loading,
   error,
-  source
+  source,
+  onPrivateDeleted
 }: ResultPageProps) {
   const [copied, setCopied] = useState(false);
   const [copying, setCopying] = useState(false);
   const [copyError, setCopyError] = useState<string | null>(null);
+  const [showLogin, setShowLogin] = useState(false);
+  const [authError, setAuthError] = useState(readAuthCallbackError);
+  const candidate = useMemo(() => session ? findReadingBySpreadResult(session.id) : null, [session?.id]);
+  const authFeedback = authError ? <div>
+    <p className="result-error" role="alert">{authError}</p>
+    <button type="button" className="ghost-button" onClick={() => {
+      setAuthError(null); setShowLogin(true);
+    }}>重新发送登录链接</button>
+  </div> : null;
+  const loginDialog = showLogin ? <AuthDialog intent="result" redirectPath={session?.sharePath ?? window.location.pathname}
+    onClose={() => setShowLogin(false)} onEmailSent={() => true}
+    onPhoneSent={() => true} /> : null;
 
   if (loading) {
     return (
@@ -35,7 +54,9 @@ export function ResultPage({
             <p className="panel-copy">
               正在读取这次抽牌的记录，请稍候。
             </p>
+            {authFeedback}
           </div>
+          {loginDialog}
         </div>
       </main>
     );
@@ -53,12 +74,14 @@ export function ResultPage({
               暂时没有找到这次牌阵。如果它仅保存在本地，请使用原来的设备和浏览器查看。
             </p>
             {error ? <p className="result-error">{error}</p> : null}
+            {authFeedback}
             <div className="result-toolbar">
               <button className="primary-button" onClick={onReturn} type="button">
                 返回抽牌空间
               </button>
             </div>
           </div>
+          {loginDialog}
         </div>
       </main>
     );
@@ -75,6 +98,7 @@ export function ResultPage({
           <p className="eyebrow">AuraTarot / Revealed Spread</p>
           <h1>{session.spread.label}</h1>
           <p className="result-quote">{session.quote}</p>
+          {authFeedback}
           <div className="result-meta">
             <span>揭示时间：{formatDateTime(session.revealedAt)}</span>
             <span>{session.persistence.cloudBacked ? '云端已保存，可分享' : session.persistence.lastSyncError ? '云端保存失败' : savingInBackground ? '正在保存到云端' : '尚未保存到云端'}</span>
@@ -130,6 +154,15 @@ export function ResultPage({
             </button>
           </div>
         </section>
+
+        {session.persistence.cloudBacked ? <>
+          <AnonymousInterpretation sessionId={session.id} canCreate={source === 'local'} />
+          <PrivateInterpretation key={session.id} session={session} candidate={candidate}
+            canCreate={source === 'local'} onSignIn={() => setShowLogin(true)}
+            onDeleted={onPrivateDeleted} />
+        </> : null}
+
+        {loginDialog}
 
         <section className="result-card">
           <div className="panel-row">

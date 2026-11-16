@@ -2,6 +2,12 @@ export interface SpreadResultCard {
   cardId: string;
   label: string;
   slotId: string;
+  slotMeaning?: {
+    version: string;
+    label: string;
+    description: string;
+    group?: string;
+  };
   selectionIndex: number;
   slotPosition: {
     x: number;

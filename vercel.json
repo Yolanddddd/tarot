@@ -3,9 +3,8 @@
   "cleanUrls": false,
   "trailingSlash": false,
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/draw", "destination": "/index.html" },
+    { "source": "/recommendation", "destination": "/index.html" },
+    { "source": "/spread/:id", "destination": "/index.html" }
   ]
 }

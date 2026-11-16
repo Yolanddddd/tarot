@@ -15,6 +15,27 @@ const { getTableLayout, fitSpread, spreadDeckCenters } = load('src/tarot/tableLa
 const { createShakeDetector } = load('src/gesture/shakeDetector.ts');
 const spreads = require('../src/config/spreads.json');
 
+test('every drawn position has a versioned meaning and monthly cards form three life-area rows', () => {
+  for (const spread of Object.values(spreads)) {
+    assert.equal(spread.meaningVersion, 'study-abroad-v1');
+    assert.equal(spread.slots.length, spread.cardCount);
+    assert.equal(new Set(spread.slots.map((slot) => slot.id)).size, spread.cardCount);
+    for (const slot of spread.slots) {
+      assert(slot.label.trim(), `${spread.id}/${slot.id} has no label`);
+      assert(slot.description.trim(), `${spread.id}/${slot.id} has no description`);
+    }
+  }
+  const monthly = spreads.monthlyFlow.slots;
+  const groups = ['学业与事业', '人际与感情', '自我状态'];
+  groups.forEach((group, row) => {
+    const slots = monthly.slice(row * 3, row * 3 + 3);
+    assert(slots.every((slot) => slot.group === group));
+    assert(slots.every((slot) => slot.y === slots[0].y));
+    assert.deepEqual(slots.map((slot) => slot.x), [-2.8, 0, 2.8]);
+  });
+  assert(monthly[0].y > monthly[3].y && monthly[3].y > monthly[6].y);
+});
+
 test('all 78 cards remain ordered and inside the table at every focus position', () => {
   for (const width of [280, 540, 619, 796, 976, 1224, 1800]) {
     for (const focus of [null, ...Array.from({ length: 78 }, (_, i) => i)]) {

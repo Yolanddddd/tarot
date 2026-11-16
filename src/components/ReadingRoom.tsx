@@ -7,8 +7,16 @@ import { useHandTracking } from '../gesture/useHandTracking';
 import { useDeviceShake } from '../gesture/useDeviceShake';
 import type { InteractionIntent, InputSource } from '../interaction/types';
 import { useSpreadSelection } from '../tarot/useSpreadSelection';
+import type { ReadingSession } from '../reading/types';
+import type { SpreadSession } from '../results/types';
+import type { SpreadId } from '../config/spreads';
 
-export function ReadingRoom({ onOpenResult }: { onOpenResult: (path: string) => void }) {
+export function ReadingRoom({ onOpenResult, reading, onSpreadChange, onSessionCreated }: {
+  onOpenResult: (path: string) => void;
+  reading: ReadingSession | null;
+  onSpreadChange: (id: SpreadId) => void;
+  onSessionCreated: (session: SpreadSession) => void;
+}) {
   const [handEnabled, setHandEnabled] = useState(false);
   const [touchDevice, setTouchDevice] = useState(() => navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches);
   const frame = useHandTracking(handEnabled);
@@ -17,7 +25,8 @@ export function ReadingRoom({ onOpenResult }: { onOpenResult: (path: string) => 
   const intentId = useRef(0);
   const opened = useRef<string | null>(null);
   const lastHandShuffle = useRef(0);
-  const selection = useSpreadSelection({ frame, handHoveredCardId, selectIntent });
+  const selection = useSpreadSelection({ frame, handHoveredCardId, selectIntent,
+    initialSpreadId: reading?.routing.spreadId, onSessionCreated });
   const saving = selection.persistenceState.status === 'saving';
   const canGestureShuffle = selection.drawnCards.length === 0 && !saving;
   const shake = useDeviceShake(selection.shuffleDeck, canGestureShuffle);
@@ -51,7 +60,7 @@ export function ReadingRoom({ onOpenResult }: { onOpenResult: (path: string) => 
   return <main className="reading-room">
     <AuraBackdrop />
     <HudPanel activeSpreadId={selection.activeSpreadId} spreadList={selection.spreadList}
-      onSelectSpread={selection.setActiveSpreadId} disabled={saving}
+      onSelectSpread={(id) => { selection.setActiveSpreadId(id); onSpreadChange(id); }} disabled={saving || selection.drawnCards.length > 0}
       onReset={selection.resetSelection} touchDevice={touchDevice}
       gestureEnabled={touchDevice ? shake.status === 'on' : handEnabled}
       gestureBusy={shake.status === 'requesting'}

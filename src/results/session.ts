@@ -26,6 +26,13 @@ export function createSpreadSession(options: {
       cardId: draw.cardId,
       label: draw.card.label,
       slotId: draw.slotId,
+      slotMeaning: {
+        version: options.spread.meaningVersion,
+        label: options.spread.slots[draw.selectionIndex].label,
+        description: options.spread.slots[draw.selectionIndex].description,
+        ...(options.spread.slots[draw.selectionIndex].group
+          ? { group: options.spread.slots[draw.selectionIndex].group } : {})
+      },
       selectionIndex: draw.selectionIndex,
       slotPosition: {
         x: options.spread.slots[draw.selectionIndex]?.x ?? 0,

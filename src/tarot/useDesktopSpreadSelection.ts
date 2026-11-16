@@ -20,6 +20,8 @@ interface UseSpreadSelectionOptions {
   selectIntent: InteractionIntent | null;
   revealIntent: InteractionIntent | null;
   onViewResults: (sharePath: string) => void;
+  initialSpreadId?: SpreadId;
+  onSessionCreated?: (session: SpreadSession) => void;
 }
 
 const HOVER_SELECT_DWELL_MS = 2000;
@@ -30,9 +32,11 @@ export function useDesktopSpreadSelection({
   hoveredCardId,
   selectIntent,
   revealIntent,
-  onViewResults
+  onViewResults,
+  initialSpreadId = 'futureCross',
+  onSessionCreated
 }: UseSpreadSelectionOptions) {
-  const [activeSpreadId, setActiveSpreadId] = useState<SpreadId>('futureCross');
+  const [activeSpreadId, setActiveSpreadId] = useState<SpreadId>(initialSpreadId);
   const [drawnCardsState, setDrawnCardsState] = useState<DrawnCardState[]>([]);
   const [fanOpen, setFanOpen] = useState(false);
   const [deckOrder, setDeckOrder] = useState<string[]>(() =>
@@ -168,6 +172,7 @@ export function useDesktopSpreadSelection({
       drawnCards: nextResolvedDraws,
       revealedAt
     });
+    onSessionCreated?.(session);
 
     setRevealedSession(session);
     setPersistenceState({
@@ -191,7 +196,7 @@ export function useDesktopSpreadSelection({
     revealInFlight.current = false;
 
     return persisted.session;
-  }, [drawnCards.length, drawnCardsState, isRevealReady, spread]);
+  }, [drawnCards.length, drawnCardsState, isRevealReady, spread, onSessionCreated]);
 
   useEffect(() => {
     const pinchStarted = frame.pointer?.pinchStarted ?? false;

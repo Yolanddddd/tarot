@@ -18,7 +18,8 @@ export function ResultSpread({ session }: { session: SpreadSession }) {
         left: placements[index].x, top: placements[index].y, width: placements[index].width,
         zIndex: 20 + Math.round(card.slotPosition.z * 10)
       }}>
-      <button type="button" className="result-card-button" aria-label={`放大第 ${index + 1} 张：${card.label}`}
+      <button type="button" className="result-card-button"
+        aria-label={`放大第 ${index + 1} 张${card.slotMeaning ? `，${card.slotMeaning.group ? `${card.slotMeaning.group}：` : ''}${card.slotMeaning.label}` : ''}：${card.label}`}
         onClick={() => setSelectedIndex(index)}>
         <TarotCardImage alt={card.label} cardId={card.cardId} label={card.label}
           className={`result-card-image ${card.isReversed ? 'result-card-image--reversed' : ''}`} />
@@ -26,9 +27,20 @@ export function ResultSpread({ session }: { session: SpreadSession }) {
       <div className="result-spread-chip"><span>{index + 1}</span><span>{card.isReversed ? '逆位' : '正位'}</span></div>
     </article>)}
   </div>
+    {session.cards.some((card) => card.slotMeaning) ? <ol className="result-slot-meanings" aria-label="牌位含义">
+      {session.cards.map((card, index) => card.slotMeaning ? <li key={`${card.slotId}-${index}`}>
+        <span className="result-slot-meanings__number">{index + 1}</span>
+        <div><strong>{card.slotMeaning.group ? `${card.slotMeaning.group} · ` : ''}{card.slotMeaning.label}</strong>
+          <span className="result-slot-meanings__card">{card.label} · {card.isReversed ? '逆位' : '正位'}</span>
+          <p>{card.slotMeaning.description}</p></div>
+      </li> : null)}
+    </ol> : null}
     <dialog className="result-dialog" ref={dialog} onClose={() => setSelectedIndex(null)} aria-labelledby="result-card-title">
       {selected && <>
-        <div className="result-dialog__heading"><h2 id="result-card-title">{selected.label} · {selected.isReversed ? '逆位' : '正位'}</h2>
+        <div className="result-dialog__heading"><h2 id="result-card-title">
+          {selected.slotMeaning ? `${selected.slotMeaning.group ? `${selected.slotMeaning.group} · ` : ''}${selected.slotMeaning.label} · ` : ''}
+          {selected.label} · {selected.isReversed ? '逆位' : '正位'}
+        </h2>
           <button type="button" className="quiet-button" onClick={() => dialog.current?.close()} aria-label="关闭放大卡牌">关闭</button>
         </div>
         <TarotCardImage cardId={selected.cardId} label={selected.label} alt={selected.label}

@@ -2,11 +2,15 @@ import type { Point3D } from '../gesture/types';
 
 export interface SpreadSlot extends Point3D {
   id: string;
+  label: string;
+  description: string;
+  group?: string;
 }
 
 export interface SpreadDefinition {
   id: string;
   label: string;
+  meaningVersion: string;
   cardCount: number;
   slots: SpreadSlot[];
 }

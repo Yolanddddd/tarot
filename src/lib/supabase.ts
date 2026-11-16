@@ -1,22 +1,8 @@
 import { runtimeConfig } from '../config/runtime';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
-interface SupabaseLikeClient {
-  from: (table: string) => {
-    insert: (row: unknown) => {
-      abortSignal: (signal: AbortSignal) => Promise<{ error: { message: string } | null }>;
-    };
-    select: (columns: string) => {
-      eq: (column: string, value: string) => {
-        limit: (
-          count: number
-        ) => Promise<{ data: unknown[] | null; error: { message: string } | null }>;
-      };
-    };
-  };
-}
-
-let client: SupabaseLikeClient | null | undefined;
-let clientPromise: Promise<SupabaseLikeClient | null> | null = null;
+let client: SupabaseClient | null | undefined;
+let clientPromise: Promise<SupabaseClient | null> | null = null;
 let clientLoadError: string | null = null;
 
 export function isSupabaseConfigured() {
@@ -44,32 +30,18 @@ export async function getSupabaseClient() {
   if (!clientPromise) {
     clientPromise = import('@supabase/supabase-js')
       .then((supabaseModule) => {
-        const typedModule = supabaseModule as unknown as {
-          createClient: (
-            url: string,
-            key: string,
-          options: {
-            auth: {
-              persistSession: boolean;
-              autoRefreshToken: boolean;
-              detectSessionInUrl: boolean;
-            };
-          }
-        ) => SupabaseLikeClient;
-        };
-
         clientLoadError = null;
-        client = typedModule.createClient(
+        client = supabaseModule.createClient(
           supabaseUrl,
           supabasePublishableKey,
           {
             auth: {
-              persistSession: false,
-              autoRefreshToken: false,
-              detectSessionInUrl: false
+              persistSession: true,
+              autoRefreshToken: true,
+              detectSessionInUrl: true
             }
           }
-        ) as SupabaseLikeClient;
+        );
 
         return client;
       })

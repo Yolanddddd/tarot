@@ -5,12 +5,18 @@ import { LightPointStage } from '../components/LightPointStage';
 import { useHandTracking } from '../gesture/useHandTracking';
 import type { InteractionIntent, InputSource } from '../interaction/types';
 import { useDesktopSpreadSelection } from '../tarot/useDesktopSpreadSelection';
+import type { ReadingSession } from '../reading/types';
+import type { SpreadSession } from '../results/types';
+import type { SpreadId } from '../config/spreads';
 
 interface DesktopReadingRoomProps {
   onOpenResult: (sharePath: string) => void;
+  reading: ReadingSession | null;
+  onSpreadChange: (id: SpreadId) => void;
+  onSessionCreated: (session: SpreadSession) => void;
 }
 
-export function DesktopReadingRoom({ onOpenResult }: DesktopReadingRoomProps) {
+export function DesktopReadingRoom({ onOpenResult, reading, onSpreadChange, onSessionCreated }: DesktopReadingRoomProps) {
   const frame = useHandTracking();
   const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
   const [selectIntent, setSelectIntent] = useState<InteractionIntent | null>(
@@ -27,7 +33,9 @@ export function DesktopReadingRoom({ onOpenResult }: DesktopReadingRoomProps) {
     hoveredCardId,
     selectIntent,
     revealIntent,
-    onViewResults: onOpenResult
+    onViewResults: onOpenResult,
+    initialSpreadId: reading?.routing.spreadId,
+    onSessionCreated
   });
 
   useEffect(() => {
@@ -101,9 +109,10 @@ export function DesktopReadingRoom({ onOpenResult }: DesktopReadingRoomProps) {
         <div className="vignette" />
         <DesktopHudPanel
           activeSpreadId={selection.activeSpreadId}
-          onSelectSpread={selection.setActiveSpreadId}
+          onSelectSpread={(id) => { if (selection.drawnCards.length > 0) return; selection.setActiveSpreadId(id); onSpreadChange(id); }}
           spread={selection.spread}
           spreadList={selection.spreadList}
+          disabled={selection.drawnCards.length > 0}
         />
         <DesktopBottomAltarPanel
           cardCount={selection.spread.cardCount}
