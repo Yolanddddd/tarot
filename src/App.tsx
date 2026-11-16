@@ -63,7 +63,7 @@ export default function App() {
       onBack={() => {
         if (reading) {
           try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify({
-            question: reading.question, background: reading.background
+            question: reading.question, background: reading.background, ownerId: reading.ownerId
           })); } catch { /* Draft persistence is optional. */ }
         }
         navigate('/');

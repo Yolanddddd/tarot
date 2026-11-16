@@ -300,10 +300,6 @@ a { color: var(--accent-gold); }
 .auth-dialog__form button { min-height: 47px; margin-top: 9px; border: 1px solid #ead6a7b0; border-radius: 999px; color: #fff5dd; background: linear-gradient(110deg,#8a674a,#5b4966 56%,#7d5d54); }
 .auth-dialog__form button:disabled { opacity: .48; }
 .auth-dialog__hint { margin: 0; color: #aca3b9; font-size: 11px; line-height: 1.7; }
-.auth-dialog__wechat { margin-top: 24px; padding-top: 17px; border-top: 1px solid #dbc58a30; }
-.auth-dialog__wechat button { width: 100%; min-height: 44px; display: flex; justify-content: space-between; align-items: center; padding: 9px 14px; border: 1px solid #a99b8842; border-radius: 11px; color: #d0c6d3; background: #ffffff08; opacity: .6; }
-.auth-dialog__wechat button span { color: var(--accent-gold-soft); font-size: 11px; }
-.auth-dialog__wechat p { margin: 7px 2px 0; color: #9f96b0; font-size: 11px; }
 .auth-dialog__status { margin: 15px 0 0; color: #e1cfae; font-size: 12px; line-height: 1.7; }
 .question-message { margin: 13px 0 0; color: #e1cfae; font-size: 12px; line-height: 1.7; }
 .question-direct { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 7px; margin-top: 23px; color: #9f96b0; font-size: 12px; }
